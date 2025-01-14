@@ -1,0 +1,19 @@
+cmake_minimum_required(VERSION 3.14)  
+project(task_controller)              
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_executable(task_controller
+    main.cpp
+    shared_memory.hpp
+    task_manager.hpp
+)
+
+
+if (WIN32)
+    target_link_libraries(task_controller)
+else()
+    target_link_libraries(task_controller pthread rt)
+endif()
