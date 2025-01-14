@@ -1,22 +1,25 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.5.0)
 
-project(lab2)
+project(task2)
 
-add_executable(lab2 background.cpp)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(APP_SRCS test.cpp)
+set(LIB_SRCS background.cpp)
+set(LIB_HDRS background.hpp)
+
+add_library(background SHARED ${LIB_HDRS} ${LIB_SRCS})
 
 
-target_include_directories(lab2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+add_executable(test ${APP_SRCS})
+target_link_libraries(test background)
+
+
+add_executable(subprogram subprogram.cpp)
+add_executable(error error.cpp)
+add_executable(long_task long_task.cpp)  
 
 if (WIN32)
-    target_link_libraries(lab2 Kernel32)
-else()
-    find_package(Threads REQUIRED)
-    target_link_libraries(lab2 ${CMAKE_THREAD_LIBS_INIT})
+    set_target_properties(background PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 endif()
-
-set_target_properties(lab2 PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-)
-
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
