@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temperature Data</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Temperature Data</h1>
+
+  <div>
+    <label for="period">Выберите дату:</label>
+    <input type="date" id="period">
+    <button onclick="getTemperatureData()">Получить статистику</button>
+  </div>
+
+  <div>
+    <label for="period">Выберите период:</label>
+    <input type="datetime-local" id="start_period">
+    <input type="datetime-local" id="end_period">
+    <button onclick="getPeriodTemperatureData()">Получить статистику</button>
+  </div>
+
+  <div>
+    <h2>Текущая температура: <span id="currentTemperature"></span></h2>
+  </div>
+
+  <div>
+    <canvas id="temperatureChart" width="800" height="400"></canvas>
+  </div>
+
+  <div>
+    <table id="temperatureTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Timestamp</th>
+          <th>Temperature</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    let myChart;
+
+    async function getCurrentTemperature() {
+        try {
+          const response = await fetch('http://localhost:3000/getCurrentTemperature');
+          const data = await response.json();
+    
+          document.getElementById('currentTemperature').innerText = data.currentTemperature;
+        } catch (error) {
+          console.error('Error fetching current temperature', error);
+        }
+    }
+
+    window.onload = function () {
+    getCurrentTemperature();
+    };
+
+    async function getTemperatureData() {
+        const selectedDate = document.getElementById('period').value;
+      
+        const response = await fetch(`http://localhost:3000/getTemperatureData?selectedDate=${selectedDate}`);
+        const data = await response.json();
+      
+        const tableBody = document.querySelector('#temperatureTable tbody');
+        tableBody.innerHTML = '';
+      
+        data.temperatureData.forEach(entry => {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>${entry.id}</td><td>${entry.timestamp}</td><td>${entry.temperature}</td>`;
+          tableBody.appendChild(row);
+        });
+    
+        clearChart();
+        updateChart(data.chartLabels, data.chartData);
+      }
+      
+    async function getPeriodTemperatureData() {
+        const selectedStartDate = document.getElementById('start_period').value;
+        const selectedEndDate = document.getElementById('end_period').value;
+      
+        const response = await fetch(`http://localhost:3000/getPeriodTemperatureData?selectedStartDate=${selectedStartDate}&selectedEndDate=${selectedEndDate}`);
+        const data = await response.json();
+      
+        const tableBody = document.querySelector('#temperatureTable tbody');
+        tableBody.innerHTML = '';
+      
+        data.temperatureData.forEach(entry => {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>${entry.id}</td><td>${entry.timestamp}</td><td>${entry.temperature}</td>`;
+          tableBody.appendChild(row);
+        });
+      
+        clearChart();
+        updateChart(data.chartLabels, data.chartData);
+      }
+      
+      function clearChart() {
+        if (myChart) {
+          myChart.destroy();
+        }
+      
+        const ctx = document.getElementById('temperatureChart').getContext('2d');
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      }
+      
+      function updateChart(labels, data) {
+        clearChart();
+      
+        const chartData = {
+          labels: labels,
+          datasets: [{
+            label: 'Temperature',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+            data: data,
+          }],
+        };
+      
+        const ctx = document.getElementById('temperatureChart').getContext('2d');
+        myChart = new Chart(ctx, {
+          type: 'line',
+          data: chartData,
+        });
+      }
+      
+  </script>
+</body>
+</html>
