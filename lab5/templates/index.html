@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История температур</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .table-container {
+            max-height: 600px;  
+            overflow-y: auto;  
+        }
+    </style>
+</head>
+<body>
+    <h1>История температур</h1>
+
+    <h2>Последняя зафиксированная температура</h2>
+    <p><strong>Температура:</strong> {{ last_temperature }}</p>
+    <p><strong>Время последней записи:</strong> {{ last_timestamp }}</p>
+
+    <h2>Выбор периода времени</h2>
+    <form method="POST" action="/">
+        <label for="start_datetime">Дата и время начала:</label>
+        <input type="datetime-local" id="start_datetime" name="start_datetime" value="{{ start_datetime }}" required>
+        <label for="end_datetime">Дата и время окончания:</label>
+        <input type="datetime-local" id="end_datetime" name="end_datetime" value="{{ end_datetime }}" required>
+        <button type="submit">Получить данные</button>
+    </form>
+
+    <h2>Таблица данных</h2>
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Время</th>
+                <th>Температура</th>
+            </tr>
+            {% for entry in data %}
+            <tr>
+                <td>{{ entry.timestamp }}</td>
+                <td>{{ entry.temperature }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <h2>График изменений температуры</h2>
+    <img src="data:image/png;base64,{{ graph_url }}" alt="График изменения температуры">
+
+</body>
+</html>
