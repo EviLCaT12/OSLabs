@@ -1,31 +1,36 @@
-cmake_minimum_required(VERSION 3.14)  
-project(ThermoLogger)  
+cmake_minimum_required(VERSION 3.10)
+project(Lab5)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include_directories(${CMAKE_SOURCE_DIR})
 
-find_package(Boost REQUIRED COMPONENTS system thread chrono)
-find_package(Threads REQUIRED)  
-find_package(SQLite3 REQUIRED) 
-
-
-add_executable(ThermoLogger
-    thermo_logger_with_db.cpp
-)
-
-target_link_libraries(ThermoLogger
-    PRIVATE
-        Boost::system
-        Boost::thread
-        Boost::chrono
-        Threads::Threads
-        SQLite::SQLite3
-)
-
-if(WIN32)
-    target_link_libraries(ThermoLogger PRIVATE ws2_32)
+find_package(SQLite3 REQUIRED)
+if(NOT SQLite3_FOUND)
+    message(FATAL_ERROR "SQLite3 library not found")
 endif()
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+find_package(Threads REQUIRED)
 
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
+add_executable(main main.cpp com.hpp)
+add_executable(server server.cpp com.hpp)
+add_executable(simulator simulator.cpp com.hpp)
+
+if(WIN32)
+    target_link_libraries(main ws2_32 ${SQLite3_LIBRARIES} Threads::Threads)
+    target_link_libraries(server ws2_32 ${SQLite3_LIBRARIES} Threads::Threads)
+    target_link_libraries(simulator ws2_32 ${SQLite3_LIBRARIES} Threads::Threads)
+else()
+    target_link_libraries(main ${SQLite3_LIBRARIES} Threads::Threads)
+    target_link_libraries(server ${SQLite3_LIBRARIES} Threads::Threads)
+    target_link_libraries(simulator ${SQLite3_LIBRARIES} Threads::Threads)
+endif()
+
+set_target_properties(main PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set_target_properties(server PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set_target_properties(simulator PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
+add_custom_target(install_python_deps ALL
+    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_BINARY_DIR} pip install flask matplotlib requests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Installing Python dependencies"
+)
